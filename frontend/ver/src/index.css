@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/* Define custom colors using CSS variables */
+@theme {
+  /* Sage Colors */
+  --color-sage-100: #DDE4DB;
+  --color-sage-200: #C7D0C4;
+  --color-sage-300: #AAB5A9;
+  --color-sage-400: #7D897D;
+  --color-sage-500: #5B675B;
+  
+  /* Gold Colors */
+  --color-gold-100: #D8C8A5;
+  --color-gold-200: #C4B28A;
+  --color-gold-300: #9A8455;
+  --color-gold-400: #7D683C;
+  --color-gold-500: #6A5732;
+  
+  /* Base Colors */
+  --color-ivory: #F8F6F2;
+  --color-charcoal: #2E2E2E;
+  
+  /* Font Families */
+  --font-serif: "EB Garamond", serif;
+  --font-sans: "DM Sans", sans-serif;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-ivory);
+    color: var(--color-charcoal);
+  }
+  
+  h1, h2, h3, h4, .font-serif {
+    font-family: var(--font-serif);
+  }
+}
+
+@layer components {
+  .container-custom {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    .container-custom {
+      padding-left: 3rem;
+      padding-right: 3rem;
+    }
+  }
+  
+  .gold-border {
+    border: 1px solid var(--color-gold-300);
+  }
+  
+  .gold-text {
+    color: var(--color-gold-400);
+  }
+  
+  .hover-lift {
+    transition: transform 0.3s;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
