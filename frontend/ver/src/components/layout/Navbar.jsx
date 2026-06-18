@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Link, NavLink, useLocation,useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import logoVer from "../../images/logover.png";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showStimonds, setShowStimonds] = useState(false);
+  const [showVeveda, setShowVeveda] = useState(false);
+  const [showSelaveda, setShowSelaveda] = useState(false);
+  
+  // Refs for dropdown containers
+  const stimondsRef = useRef(null);
+  const vevedaRef = useRef(null);
+  const selavedaRef = useRef(null);
+  const timeoutRef = useRef(null);
+  
   const location = useLocation();
-   const navigate = useNavigate()
+  const navigate = useNavigate();
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -19,15 +30,53 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'S.Timonds', path: '/collections/stimonds' },
-    { name: 'Veveda', path: '/collections/veveda' },
-    { name: 'Selaveda', path: '/collections/selaveda' },
-    { name: 'Services', path: '/services' },
-    // { name: 'Book Appointment', path: '/appointment' },
-    { name: 'Contact Us', path: '/contact' },
-  ];
+  const handleBookingClick = () => {
+    navigate('/appointment');
+    setIsMobileMenuOpen(false);
+  };
+
+  // Handle dropdown hover with delay
+  const handleMouseEnter = (setter) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setter(true);
+  };
+
+  const handleMouseLeave = (setter) => {
+    timeoutRef.current = setTimeout(() => {
+      setter(false);
+    }, 200);
+  };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (stimondsRef.current && !stimondsRef.current.contains(event.target)) {
+        setShowStimonds(false);
+      }
+      if (vevedaRef.current && !vevedaRef.current.contains(event.target)) {
+        setShowVeveda(false);
+      }
+      if (selavedaRef.current && !selavedaRef.current.contains(event.target)) {
+        setShowSelaveda(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Dropdown link click handler
+  const handleDropdownLinkClick = (setter) => {
+    setter(false);
+  };
 
   return (
     <>
@@ -35,50 +84,309 @@ const Navbar = () => {
         className={`fixed top-0 w-full z-50 transition-all duration-500 ${
           isScrolled
             ? 'bg-ivory/95 backdrop-blur-md shadow-lg py-2'
-            : 'bg-ivory/80 backdrop-blur-sm '
+            : 'bg-ivory/80 backdrop-blur-sm py-3'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
           <div className="flex justify-between items-center">
-            {/* Logo - EXTRA LARGE */}
-            <Link to="/" className="group flex items-center space-x-3 relative">
+            {/* Logo */}
+            <Link to="/" className="group flex items-center relative flex-shrink-0">
               <img 
                 src={logoVer} 
                 alt="VERVEDA Logo" 
-                className="h-14 md:h-20 lg:h-24 w-auto object-contain transition-all duration-300"
+                className="h-12 md:h-16 lg:h-20 w-auto object-contain transition-all duration-300"
               />
-              <div className="hidden sm:block">
-                
-              </div>
-              <span className="absolute -bottom-2 left-0 h-px w-0 group-hover:w-full bg-gold-300 transition-all duration-500"></span>
+              <span className="absolute -bottom-1 left-0 h-0.5 w-0 group-hover:w-full bg-gold-300 transition-all duration-500"></span>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex space-x-8">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  className={({ isActive }) =>
-                    `text-sm uppercase tracking-wider transition-all duration-300 font-sans ${
-                      isActive
-                        ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
-                        : 'text-charcoal/70 hover:text-gold-400'
-                    }`
-                  }
+            <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
+              {/* HOME */}
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  `text-sm uppercase tracking-wider transition-all duration-300 font-sans ${
+                    isActive
+                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
+                      : 'text-charcoal/70 hover:text-gold-400'
+                  }`
+                }
+              >
+                HOME
+              </NavLink>
+
+              {/* STIMAONDS Dropdown */}
+              <div
+                ref={stimondsRef}
+                className="relative"
+                onMouseEnter={() => handleMouseEnter(setShowStimonds)}
+                onMouseLeave={() => handleMouseLeave(setShowStimonds)}
+              >
+                <button 
+                  className={`text-sm uppercase tracking-wider transition-all duration-300 font-sans flex items-center gap-1 ${
+                    location.pathname.includes('/collections/stimonds')
+                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
+                      : 'text-charcoal/70 hover:text-gold-400'
+                  }`}
+                  onClick={() => setShowStimonds(!showStimonds)}
                 >
-                  {link.name}
-                </NavLink>
-              ))}
+                  STIMAONDS
+                
+                </button>
+
+                {showStimonds && (
+                  <div 
+                    className="absolute top-full left-0 mt-1 bg-ivory shadow-xl min-w-[280px] p-6 rounded-sm border border-sage-100"
+                    onMouseEnter={() => handleMouseEnter(setShowStimonds)}
+                    onMouseLeave={() => handleMouseLeave(setShowStimonds)}
+                  >
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gold-400 text-xs uppercase tracking-wider mb-2">
+                        Diamond Earrings
+                      </h4>
+                      <div className="space-y-2">
+                        <NavLink 
+                          to="/collections/stimonds/earrings/solitaire"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowStimonds)}
+                        >
+                          Solitaire Earrings
+                        </NavLink>
+                        <NavLink 
+                          to="/collections/stimonds/earrings/stud"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowStimonds)}
+                        >
+                          Stud Earrings
+                        </NavLink>
+                        <NavLink 
+                          to="/collections/stimonds/earrings/hoop"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowStimonds)}
+                        >
+                          Hoop Earrings
+                        </NavLink>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gold-400 text-xs uppercase tracking-wider mb-2">
+                        Diamond Rings
+                      </h4>
+                      <div className="space-y-2">
+                        <NavLink 
+                          to="/collections/stimonds/rings/solitaire"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowStimonds)}
+                        >
+                          Solitaire Rings
+                        </NavLink>
+                        <NavLink 
+                          to="/collections/stimonds/rings/engagement"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowStimonds)}
+                        >
+                          Engagement Rings
+                        </NavLink>
+                        <NavLink 
+                          to="/collections/stimonds/rings/wedding"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowStimonds)}
+                        >
+                          Wedding Bands
+                        </NavLink>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gold-400 text-xs uppercase tracking-wider mb-2">
+                        Diamond Necklaces
+                      </h4>
+                      <div className="space-y-2">
+                        <NavLink 
+                          to="/collections/stimonds/necklaces/pendant"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowStimonds)}
+                        >
+                          Pendant Necklaces
+                        </NavLink>
+                        <NavLink 
+                          to="/collections/stimonds/necklaces/tennis"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowStimonds)}
+                        >
+                          Tennis Necklaces
+                        </NavLink>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* VEVADA Dropdown */}
+              <div
+                ref={vevedaRef}
+                className="relative"
+                onMouseEnter={() => handleMouseEnter(setShowVeveda)}
+                onMouseLeave={() => handleMouseLeave(setShowVeveda)}
+              >
+                <button 
+                  className={`text-sm uppercase tracking-wider transition-all duration-300 font-sans flex items-center gap-1 ${
+                    location.pathname.includes('/collections/veveda')
+                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
+                      : 'text-charcoal/70 hover:text-gold-400'
+                  }`}
+                  onClick={() => setShowVeveda(!showVeveda)}
+                >
+                  VEVADA
+                
+                </button>
+
+                {showVeveda && (
+                  <div 
+                    className="absolute top-full left-0 mt-1 bg-ivory shadow-xl min-w-[280px] p-6 rounded-sm border border-sage-100"
+                    onMouseEnter={() => handleMouseEnter(setShowVeveda)}
+                    onMouseLeave={() => handleMouseLeave(setShowVeveda)}
+                  >
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gold-400 text-xs uppercase tracking-wider mb-2">
+                        Nature-Inspired
+                      </h4>
+                      <div className="space-y-2">
+                        <NavLink 
+                          to="/collections/veveda/floral"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowVeveda)}
+                        >
+                          Floral Collection
+                        </NavLink>
+                        <NavLink 
+                          to="/collections/veveda/leaf"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowVeveda)}
+                        >
+                          Leaf Collection
+                        </NavLink>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gold-400 text-xs uppercase tracking-wider mb-2">
+                        Organic Designs
+                      </h4>
+                      <div className="space-y-2">
+                        <NavLink 
+                          to="/collections/veveda/organic"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowVeveda)}
+                        >
+                          Organic Collection
+                        </NavLink>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SELAVADA Dropdown */}
+              <div
+                ref={selavedaRef}
+                className="relative"
+                onMouseEnter={() => handleMouseEnter(setShowSelaveda)}
+                onMouseLeave={() => handleMouseLeave(setShowSelaveda)}
+              >
+                <button 
+                  className={`text-sm uppercase tracking-wider transition-all duration-300 font-sans flex items-center gap-1 ${
+                    location.pathname.includes('/collections/selaveda')
+                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
+                      : 'text-charcoal/70 hover:text-gold-400'
+                  }`}
+                  onClick={() => setShowSelaveda(!showSelaveda)}
+                >
+                  SELAVADA
+                 
+                </button>
+
+                {showSelaveda && (
+                  <div 
+                    className="absolute top-full left-0 mt-1 bg-ivory shadow-xl min-w-[280px] p-6 rounded-sm border border-sage-100"
+                    onMouseEnter={() => handleMouseEnter(setShowSelaveda)}
+                    onMouseLeave={() => handleMouseLeave(setShowSelaveda)}
+                  >
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gold-400 text-xs uppercase tracking-wider mb-2">
+                        Heritage Collection
+                      </h4>
+                      <div className="space-y-2">
+                        <NavLink 
+                          to="/collections/selaveda/heritage"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowSelaveda)}
+                        >
+                          Heritage Pieces
+                        </NavLink>
+                        <NavLink 
+                          to="/collections/selaveda/vintage"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowSelaveda)}
+                        >
+                          Vintage Collection
+                        </NavLink>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gold-400 text-xs uppercase tracking-wider mb-2">
+                        Bridal
+                      </h4>
+                      <div className="space-y-2">
+                        <NavLink 
+                          to="/collections/selaveda/bridal"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          onClick={() => handleDropdownLinkClick(setShowSelaveda)}
+                        >
+                          Bridal Collection
+                        </NavLink>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SERVICES */}
+              <NavLink
+                to="/services"
+                className={({ isActive }) =>
+                  `text-sm uppercase tracking-wider transition-all duration-300 font-sans ${
+                    isActive
+                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
+                      : 'text-charcoal/70 hover:text-gold-400'
+                  }`
+                }
+              >
+                SERVICES
+              </NavLink>
+
+              {/* CONTACT US */}
+              <NavLink
+                to="/contact"
+                className={({ isActive }) =>
+                  `text-sm uppercase tracking-wider transition-all duration-300 font-sans ${
+                    isActive
+                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
+                      : 'text-charcoal/70 hover:text-gold-400'
+                  }`
+                }
+              >
+                CONTACT US
+              </NavLink>
             </nav>
 
             {/* Desktop CTA Button */}
-            <Link
-              to="/appointment"
-              className="hidden md:block px-6 py-3 border border-gold-300 text-gold-400 text-sm uppercase tracking-wider hover:bg-gold-300 hover:text-charcoal transition-all duration-300 rounded-sm"
+            <button
+              onClick={handleBookingClick}
+              className="hidden md:block px-6 py-2.5 border border-gold-300 text-gold-400 text-sm uppercase tracking-wider hover:bg-gold-300 hover:text-charcoal transition-all duration-300 rounded-sm flex-shrink-0"
             >
               Book Appointment
-            </Link>
+            </button>
 
             {/* Mobile Menu Button */}
             <button
@@ -115,44 +423,151 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`fixed inset-0 z-40 bg-ivory transform transition-transform duration-500 ease-in-out ${
+        className={`fixed inset-0 z-40 bg-ivory transform transition-transform duration-500 ease-in-out overflow-y-auto ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:hidden pt-24 px-6`}
+        } lg:hidden pt-20 px-6`}
       >
-        {/* Mobile Logo - Extra Large */}
-        <div className="flex flex-col items-center justify-center mb-10">
+        <div className="flex flex-col items-center justify-center mb-8 mt-4">
           <img 
             src={logoVer} 
             alt="VERVEDA Logo" 
-            className="h-20 w-auto object-contain mb-4"
+            className="h-16 w-auto object-contain mb-3"
           />
-          <span className="text-2xl font-serif tracking-wide text-charcoal">
+          <span className="text-xl font-serif tracking-wide text-charcoal">
             VERVEDA
           </span>
         </div>
         
-        <nav className="flex flex-col space-y-6">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={({ isActive }) =>
-                `text-lg uppercase tracking-wider transition-colors font-sans text-center ${
-                  isActive ? 'text-gold-400' : 'text-charcoal/70 hover:text-gold-400'
-                }`
-              }
-            >
-              {link.name}
-            </NavLink>
-          ))}
-          <Link
-            
+        <nav className="flex flex-col space-y-4">
+          {/* HOME */}
+          <NavLink
+            to="/"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="mt-4 px-6 py-3 bg-gold-300 text-charcoal text-center uppercase tracking-wider hover:bg-gold-400 transition rounded-sm"
+            className={({ isActive }) =>
+              `text-lg uppercase tracking-wider transition-colors font-sans text-center py-2 ${
+                isActive ? 'text-gold-400 border-b-2 border-gold-400' : 'text-charcoal/70 hover:text-gold-400'
+              }`
+            }
+          >
+            HOME
+          </NavLink>
+
+          {/* STIMAONDS Mobile */}
+          <div className="border-t border-sage-100 pt-4">
+            <p className="text-xs uppercase tracking-wider text-gold-400 font-semibold text-center mb-3">
+              STIMAONDS
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <NavLink
+                to="/collections/stimonds/earrings/solitaire"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+              >
+                Solitaire Earrings
+              </NavLink>
+              <NavLink
+                to="/collections/stimonds/earrings/stud"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+              >
+                Stud Earrings
+              </NavLink>
+              <NavLink
+                to="/collections/stimonds/rings/solitaire"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+              >
+                Solitaire Rings
+              </NavLink>
+              <NavLink
+                to="/collections/stimonds/rings/engagement"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+              >
+                Engagement Rings
+              </NavLink>
+            </div>
+          </div>
+
+          {/* VEVADA Mobile */}
+          <div className="border-t border-sage-100 pt-4">
+            <p className="text-xs uppercase tracking-wider text-gold-400 font-semibold text-center mb-3">
+              VEVADA
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <NavLink
+                to="/collections/veveda/floral"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+              >
+                Floral Collection
+              </NavLink>
+              <NavLink
+                to="/collections/veveda/leaf"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+              >
+                Leaf Collection
+              </NavLink>
+            </div>
+          </div>
+
+          {/* SELAVADA Mobile */}
+          <div className="border-t border-sage-100 pt-4">
+            <p className="text-xs uppercase tracking-wider text-gold-400 font-semibold text-center mb-3">
+              SELAVADA
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <NavLink
+                to="/collections/selaveda/heritage"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+              >
+                Heritage Pieces
+              </NavLink>
+              <NavLink
+                to="/collections/selaveda/bridal"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+              >
+                Bridal Collection
+              </NavLink>
+            </div>
+          </div>
+
+          {/* SERVICES */}
+          <NavLink
+            to="/services"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `text-lg uppercase tracking-wider transition-colors font-sans text-center py-2 ${
+                isActive ? 'text-gold-400 border-b-2 border-gold-400' : 'text-charcoal/70 hover:text-gold-400'
+              }`
+            }
+          >
+            SERVICES
+          </NavLink>
+
+          {/* CONTACT US */}
+          <NavLink
+            to="/contact"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `text-lg uppercase tracking-wider transition-colors font-sans text-center py-2 ${
+                isActive ? 'text-gold-400 border-b-2 border-gold-400' : 'text-charcoal/70 hover:text-gold-400'
+              }`
+            }
+          >
+            CONTACT US
+          </NavLink>
+
+          {/* Book Appointment Button */}
+          <button
+            onClick={handleBookingClick}
+            className="mt-6 px-6 py-3 bg-gold-300 text-charcoal text-center uppercase tracking-wider hover:bg-gold-400 transition rounded-sm font-sans"
           >
             Book Appointment
-          </Link>
+          </button>
         </nav>
       </div>
     </>
