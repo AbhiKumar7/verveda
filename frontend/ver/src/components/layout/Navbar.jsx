@@ -13,7 +13,6 @@ const Navbar = () => {
   const stimondsRef = useRef(null);
   const vevedaRef = useRef(null);
   const selavedaRef = useRef(null);
-  const timeoutRef = useRef(null);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,19 +34,14 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // Handle dropdown hover with delay
+  // Handle dropdown hover - Open on mouse enter
   const handleMouseEnter = (setter) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
     setter(true);
   };
 
+  // Handle dropdown hover - Close on mouse leave
   const handleMouseLeave = (setter) => {
-    timeoutRef.current = setTimeout(() => {
-      setter(false);
-    }, 200);
+    setter(false);
   };
 
   // Close dropdowns when clicking outside
@@ -67,15 +61,61 @@ const Navbar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
     };
   }, []);
 
   // Dropdown link click handler
   const handleDropdownLinkClick = (setter) => {
     setter(false);
+  };
+
+  // NavLink with hover line component
+  const NavLinkWithLine = ({ to, children, className = "" }) => {
+    const isActive = location.pathname === to;
+    return (
+      <NavLink
+        to={to}
+        className={({ isActive: isNavActive }) =>
+          `relative text-sm uppercase tracking-wider transition-all duration-300 font-sans group ${
+            isNavActive
+              ? 'text-gold-400'
+              : 'text-charcoal/70 hover:text-gold-400'
+          } ${className}`
+        }
+      >
+        {children}
+        <span className={`absolute -bottom-1 left-0 h-0.5 bg-gold-400 transition-all duration-300 ${
+          isActive ? 'w-full' : 'w-0 group-hover:w-full'
+        }`}></span>
+      </NavLink>
+    );
+  };
+
+  // Dropdown button with line
+  const DropdownButton = ({ children, isOpen, onClick, isActive }) => {
+    return (
+      <button 
+        className={`relative text-sm uppercase tracking-wider transition-all duration-300 font-sans flex items-center gap-1 group ${
+          isActive
+            ? 'text-gold-400'
+            : 'text-charcoal/70 hover:text-gold-400'
+        }`}
+        onClick={onClick}
+      >
+        {children}
+        <svg 
+          className={`w-3 h-3 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+        <span className={`absolute -bottom-1 left-0 h-0.5 bg-gold-400 transition-all duration-300 ${
+          isActive || isOpen ? 'w-full' : 'w-0 group-hover:w-full'
+        }`}></span>
+      </button>
+    );
   };
 
   return (
@@ -102,18 +142,9 @@ const Navbar = () => {
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
               {/* HOME */}
-              <NavLink
-                to="/"
-                className={({ isActive }) =>
-                  `text-sm uppercase tracking-wider transition-all duration-300 font-sans ${
-                    isActive
-                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
-                      : 'text-charcoal/70 hover:text-gold-400'
-                  }`
-                }
-              >
+              <NavLinkWithLine to="/">
                 HOME
-              </NavLink>
+              </NavLinkWithLine>
 
               {/* STIMAONDS Dropdown */}
               <div
@@ -122,21 +153,17 @@ const Navbar = () => {
                 onMouseEnter={() => handleMouseEnter(setShowStimonds)}
                 onMouseLeave={() => handleMouseLeave(setShowStimonds)}
               >
-                <button 
-                  className={`text-sm uppercase tracking-wider transition-all duration-300 font-sans flex items-center gap-1 ${
-                    location.pathname.includes('/collections/stimonds')
-                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
-                      : 'text-charcoal/70 hover:text-gold-400'
-                  }`}
+                <DropdownButton
+                  isOpen={showStimonds}
                   onClick={() => setShowStimonds(!showStimonds)}
+                  isActive={location.pathname.includes('/collections/stimonds')}
                 >
                   STIMAONDS
-                
-                </button>
+                </DropdownButton>
 
                 {showStimonds && (
                   <div 
-                    className="absolute top-full left-0 mt-1 bg-ivory shadow-xl min-w-[280px] p-6 rounded-sm border border-sage-100"
+                    className="absolute top-full left-0 mt-1 bg-ivory shadow-xl min-w-[280px] p-6 rounded-sm border border-sage-100 z-50"
                     onMouseEnter={() => handleMouseEnter(setShowStimonds)}
                     onMouseLeave={() => handleMouseLeave(setShowStimonds)}
                   >
@@ -147,24 +174,27 @@ const Navbar = () => {
                       <div className="space-y-2">
                         <NavLink 
                           to="/collections/stimonds/earrings/solitaire"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowStimonds)}
                         >
                           Solitaire Earrings
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                         <NavLink 
                           to="/collections/stimonds/earrings/stud"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowStimonds)}
                         >
                           Stud Earrings
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                         <NavLink 
                           to="/collections/stimonds/earrings/hoop"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowStimonds)}
                         >
                           Hoop Earrings
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                       </div>
                     </div>
@@ -176,24 +206,27 @@ const Navbar = () => {
                       <div className="space-y-2">
                         <NavLink 
                           to="/collections/stimonds/rings/solitaire"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowStimonds)}
                         >
                           Solitaire Rings
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                         <NavLink 
                           to="/collections/stimonds/rings/engagement"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowStimonds)}
                         >
                           Engagement Rings
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                         <NavLink 
                           to="/collections/stimonds/rings/wedding"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowStimonds)}
                         >
                           Wedding Bands
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                       </div>
                     </div>
@@ -205,17 +238,19 @@ const Navbar = () => {
                       <div className="space-y-2">
                         <NavLink 
                           to="/collections/stimonds/necklaces/pendant"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowStimonds)}
                         >
                           Pendant Necklaces
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                         <NavLink 
                           to="/collections/stimonds/necklaces/tennis"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowStimonds)}
                         >
                           Tennis Necklaces
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                       </div>
                     </div>
@@ -230,21 +265,17 @@ const Navbar = () => {
                 onMouseEnter={() => handleMouseEnter(setShowVeveda)}
                 onMouseLeave={() => handleMouseLeave(setShowVeveda)}
               >
-                <button 
-                  className={`text-sm uppercase tracking-wider transition-all duration-300 font-sans flex items-center gap-1 ${
-                    location.pathname.includes('/collections/veveda')
-                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
-                      : 'text-charcoal/70 hover:text-gold-400'
-                  }`}
+                <DropdownButton
+                  isOpen={showVeveda}
                   onClick={() => setShowVeveda(!showVeveda)}
+                  isActive={location.pathname.includes('/collections/veveda')}
                 >
                   VEVADA
-                
-                </button>
+                </DropdownButton>
 
                 {showVeveda && (
                   <div 
-                    className="absolute top-full left-0 mt-1 bg-ivory shadow-xl min-w-[280px] p-6 rounded-sm border border-sage-100"
+                    className="absolute top-full left-0 mt-1 bg-ivory shadow-xl min-w-[280px] p-6 rounded-sm border border-sage-100 z-50"
                     onMouseEnter={() => handleMouseEnter(setShowVeveda)}
                     onMouseLeave={() => handleMouseLeave(setShowVeveda)}
                   >
@@ -255,17 +286,19 @@ const Navbar = () => {
                       <div className="space-y-2">
                         <NavLink 
                           to="/collections/veveda/floral"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowVeveda)}
                         >
                           Floral Collection
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                         <NavLink 
                           to="/collections/veveda/leaf"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowVeveda)}
                         >
                           Leaf Collection
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                       </div>
                     </div>
@@ -276,10 +309,11 @@ const Navbar = () => {
                       <div className="space-y-2">
                         <NavLink 
                           to="/collections/veveda/organic"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowVeveda)}
                         >
                           Organic Collection
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                       </div>
                     </div>
@@ -294,21 +328,17 @@ const Navbar = () => {
                 onMouseEnter={() => handleMouseEnter(setShowSelaveda)}
                 onMouseLeave={() => handleMouseLeave(setShowSelaveda)}
               >
-                <button 
-                  className={`text-sm uppercase tracking-wider transition-all duration-300 font-sans flex items-center gap-1 ${
-                    location.pathname.includes('/collections/selaveda')
-                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
-                      : 'text-charcoal/70 hover:text-gold-400'
-                  }`}
+                <DropdownButton
+                  isOpen={showSelaveda}
                   onClick={() => setShowSelaveda(!showSelaveda)}
+                  isActive={location.pathname.includes('/collections/selaveda')}
                 >
                   SELAVADA
-                 
-                </button>
+                </DropdownButton>
 
                 {showSelaveda && (
                   <div 
-                    className="absolute top-full left-0 mt-1 bg-ivory shadow-xl min-w-[280px] p-6 rounded-sm border border-sage-100"
+                    className="absolute top-full left-0 mt-1 bg-ivory shadow-xl min-w-[280px] p-6 rounded-sm border border-sage-100 z-50"
                     onMouseEnter={() => handleMouseEnter(setShowSelaveda)}
                     onMouseLeave={() => handleMouseLeave(setShowSelaveda)}
                   >
@@ -319,17 +349,19 @@ const Navbar = () => {
                       <div className="space-y-2">
                         <NavLink 
                           to="/collections/selaveda/heritage"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowSelaveda)}
                         >
                           Heritage Pieces
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                         <NavLink 
                           to="/collections/selaveda/vintage"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowSelaveda)}
                         >
                           Vintage Collection
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                       </div>
                     </div>
@@ -340,10 +372,11 @@ const Navbar = () => {
                       <div className="space-y-2">
                         <NavLink 
                           to="/collections/selaveda/bridal"
-                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors"
+                          className="block text-sm text-charcoal/70 hover:text-gold-400 transition-colors relative group/link"
                           onClick={() => handleDropdownLinkClick(setShowSelaveda)}
                         >
                           Bridal Collection
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gold-400 group-hover/link:w-full transition-all duration-300"></span>
                         </NavLink>
                       </div>
                     </div>
@@ -352,32 +385,14 @@ const Navbar = () => {
               </div>
 
               {/* SERVICES */}
-              <NavLink
-                to="/services"
-                className={({ isActive }) =>
-                  `text-sm uppercase tracking-wider transition-all duration-300 font-sans ${
-                    isActive
-                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
-                      : 'text-charcoal/70 hover:text-gold-400'
-                  }`
-                }
-              >
+              <NavLinkWithLine to="/services">
                 SERVICES
-              </NavLink>
+              </NavLinkWithLine>
 
               {/* CONTACT US */}
-              <NavLink
-                to="/contact"
-                className={({ isActive }) =>
-                  `text-sm uppercase tracking-wider transition-all duration-300 font-sans ${
-                    isActive
-                      ? 'text-gold-400 border-b-2 border-gold-400 pb-1'
-                      : 'text-charcoal/70 hover:text-gold-400'
-                  }`
-                }
-              >
+              <NavLinkWithLine to="/contact">
                 CONTACT US
-              </NavLink>
+              </NavLinkWithLine>
             </nav>
 
             {/* Desktop CTA Button */}
@@ -444,12 +459,15 @@ const Navbar = () => {
             to="/"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `text-lg uppercase tracking-wider transition-colors font-sans text-center py-2 ${
-                isActive ? 'text-gold-400 border-b-2 border-gold-400' : 'text-charcoal/70 hover:text-gold-400'
+              `relative text-lg uppercase tracking-wider transition-colors font-sans text-center py-2 group ${
+                isActive ? 'text-gold-400' : 'text-charcoal/70 hover:text-gold-400'
               }`
             }
           >
             HOME
+            <span className={`absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-0.5 bg-gold-400 transition-all duration-300 ${
+              location.pathname === '/' ? 'w-12' : 'w-0 group-hover:w-12'
+            }`}></span>
           </NavLink>
 
           {/* STIMAONDS Mobile */}
@@ -461,30 +479,34 @@ const Navbar = () => {
               <NavLink
                 to="/collections/stimonds/earrings/solitaire"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1 relative group"
               >
                 Solitaire Earrings
+                <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-px w-0 bg-gold-400 group-hover:w-8 transition-all duration-300"></span>
               </NavLink>
               <NavLink
                 to="/collections/stimonds/earrings/stud"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1 relative group"
               >
                 Stud Earrings
+                <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-px w-0 bg-gold-400 group-hover:w-8 transition-all duration-300"></span>
               </NavLink>
               <NavLink
                 to="/collections/stimonds/rings/solitaire"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1 relative group"
               >
                 Solitaire Rings
+                <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-px w-0 bg-gold-400 group-hover:w-8 transition-all duration-300"></span>
               </NavLink>
               <NavLink
                 to="/collections/stimonds/rings/engagement"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1 relative group"
               >
                 Engagement Rings
+                <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-px w-0 bg-gold-400 group-hover:w-8 transition-all duration-300"></span>
               </NavLink>
             </div>
           </div>
@@ -498,16 +520,18 @@ const Navbar = () => {
               <NavLink
                 to="/collections/veveda/floral"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1 relative group"
               >
                 Floral Collection
+                <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-px w-0 bg-gold-400 group-hover:w-8 transition-all duration-300"></span>
               </NavLink>
               <NavLink
                 to="/collections/veveda/leaf"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1 relative group"
               >
                 Leaf Collection
+                <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-px w-0 bg-gold-400 group-hover:w-8 transition-all duration-300"></span>
               </NavLink>
             </div>
           </div>
@@ -521,16 +545,18 @@ const Navbar = () => {
               <NavLink
                 to="/collections/selaveda/heritage"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1 relative group"
               >
                 Heritage Pieces
+                <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-px w-0 bg-gold-400 group-hover:w-8 transition-all duration-300"></span>
               </NavLink>
               <NavLink
                 to="/collections/selaveda/bridal"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1"
+                className="text-sm text-charcoal/70 hover:text-gold-400 transition-colors text-center py-1 relative group"
               >
                 Bridal Collection
+                <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-px w-0 bg-gold-400 group-hover:w-8 transition-all duration-300"></span>
               </NavLink>
             </div>
           </div>
@@ -540,12 +566,15 @@ const Navbar = () => {
             to="/services"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `text-lg uppercase tracking-wider transition-colors font-sans text-center py-2 ${
-                isActive ? 'text-gold-400 border-b-2 border-gold-400' : 'text-charcoal/70 hover:text-gold-400'
+              `relative text-lg uppercase tracking-wider transition-colors font-sans text-center py-2 group ${
+                isActive ? 'text-gold-400' : 'text-charcoal/70 hover:text-gold-400'
               }`
             }
           >
             SERVICES
+            <span className={`absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-0.5 bg-gold-400 transition-all duration-300 ${
+              location.pathname === '/services' ? 'w-12' : 'w-0 group-hover:w-12'
+            }`}></span>
           </NavLink>
 
           {/* CONTACT US */}
@@ -553,12 +582,15 @@ const Navbar = () => {
             to="/contact"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `text-lg uppercase tracking-wider transition-colors font-sans text-center py-2 ${
-                isActive ? 'text-gold-400 border-b-2 border-gold-400' : 'text-charcoal/70 hover:text-gold-400'
+              `relative text-lg uppercase tracking-wider transition-colors font-sans text-center py-2 group ${
+                isActive ? 'text-gold-400' : 'text-charcoal/70 hover:text-gold-400'
               }`
             }
           >
             CONTACT US
+            <span className={`absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 h-0.5 bg-gold-400 transition-all duration-300 ${
+              location.pathname === '/contact' ? 'w-12' : 'w-0 group-hover:w-12'
+            }`}></span>
           </NavLink>
 
           {/* Book Appointment Button */}
